@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    <!-- SEO Meta Tags -->
+    <title>VPN Hub - The Ultimate Open-Source Travel Router</title>
+    <meta name="description" content="Automate your travel VPN setup. VPN Hub solves the captive portal problem, tunneling all your devices securely to your home network via WireGuard.">
+    <meta name="keywords" content="VPN, Travel Router, WireGuard, Open Source, SBC, Raspberry Pi, Orange Pi, Captive Portal, Network Security">
+    <meta name="author" content="Alex Vasilyev">
+    
+    <!-- Open Graph Tags for Social Sharing -->
+    <meta property="og:title" content="VPN Hub - Secure Travel VPN">
+    <meta property="og:description" content="Deploy a fully automated, open-source travel router that bypasses captive portals and secures your devices via WireGuard.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://github.com/extremealexv/vpn_hub">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="VPN Hub - Secure Travel VPN">
+    <meta name="twitter:description" content="Deploy a fully automated, open-source travel router that bypasses captive portals and secures your devices.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar glass">
+        <div class="container nav-container">
+            <div class="logo">
+                <span class="logo-icon">🌐</span>
+                <span class="logo-text">VPN Hub</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="https://github.com/extremealexv/vpn_hub" class="btn btn-outline" target="_blank" rel="noopener">GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-bg-glow"></div>
+        <div class="container hero-content reveal">
+            <div class="badge">v1.0 is Live</div>
+            <h1>The Ultimate Open-Source<br><span class="text-gradient">Travel VPN Router</span></h1>
+            <p class="subtitle">
+                Turn any generic SBC into a powerful travel router. Solve the captive portal problem, connect your devices once, and securely tunnel all your traffic back home using WireGuard.
+            </p>
+            <div class="hero-actions">
+                <a href="#how-it-works" class="btn btn-primary">Get Started</a>
+                <a href="https://github.com/extremealexv/vpn_hub" class="btn btn-secondary" target="_blank" rel="noopener">View Source</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Features Section -->
+    <section id="features" class="features container">
+        <h2 class="section-title reveal">Why VPN Hub?</h2>
+        <div class="feature-grid">
+            <article class="feature-card glass reveal delay-1">
+                <div class="feature-icon">🔓</div>
+                <h3>Captive Portal Solver</h3>
+                <p>Never struggle with hotel Wi-Fi again. The built-in Management UI allows you to easily scan networks, connect, and authenticate before securing the tunnel.</p>
+            </article>
+            <article class="feature-card glass reveal delay-2">
+                <div class="feature-icon">⚡</div>
+                <h3>Automated Deployment</h3>
+                <p>A single `./deploy.sh` script handles everything. From NAT masquerading on the server to creating a persistent Hotspot and virtual interfaces on the hub.</p>
+            </article>
+            <article class="feature-card glass reveal delay-3">
+                <div class="feature-icon">🛡️</div>
+                <h3>WireGuard Security</h3>
+                <p>Powered by the ultra-fast and modern WireGuard protocol. Your traffic is cryptographically secure and routed perfectly to bypass geographic restrictions.</p>
+            </article>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works container">
+        <h2 class="section-title reveal">How It Works</h2>
+        <div class="steps-container">
+            <div class="step reveal">
+                <div class="step-number">1</div>
+                <div class="step-content glass">
+                    <h3>Deploy the Home Server</h3>
+                    <p>Run the deployment script against an SBC or Linux machine sitting at your house. It automatically configures WireGuard, enables IP forwarding, and sets up NAT masquerade rules.</p>
+                </div>
+            </div>
+            <div class="step reveal delay-1">
+                <div class="step-number">2</div>
+                <div class="step-content glass">
+                    <h3>Deploy the Travel Hub</h3>
+                    <p>Provision your portable device. It generates a persistent Hotspot (`VPN_Hub_AP`) and a virtual interface (`wlan1`) for scanning networks without dropping connections.</p>
+                </div>
+            </div>
+            <div class="step reveal delay-2">
+                <div class="step-number">3</div>
+                <div class="step-content glass">
+                    <h3>Travel & Connect</h3>
+                    <p>Connect your phone to the Hub's Hotspot. Go to `http://10.42.0.1`, connect to the Hotel's Wi-Fi, pass the captive portal, and click "Toggle VPN" to secure your connection!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer glass">
+        <div class="container footer-content">
+            <div class="footer-left">
+                <span class="logo-text">VPN Hub</span>
+                <p class="footer-desc">Open-Source Travel Router Automation.</p>
+            </div>
+            <div class="footer-right">
+                <a href="https://github.com/extremealexv/vpn_hub" target="_blank" rel="noopener">GitHub Repository</a>
+                <a href="https://github.com/extremealexv/vpn_hub/blob/main/docs/installation.md" target="_blank" rel="noopener">Documentation</a>
+                <a href="https://github.com/extremealexv/vpn_hub/blob/main/LICENSE" target="_blank" rel="noopener">License</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 VPN Hub Contributors. MIT Licensed.</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
