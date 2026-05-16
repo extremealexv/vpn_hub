@@ -1,0 +1,8 @@
+vpn_server_ip=192.168.1.100
+vpn_hub_ip=192.168.1.101
+user=yourusername
+password=yoursecurepassword
+nat_name=yourdomain.tech
+vpn_port=8443
+hub_wifi_iface=wlan0
+hub_virt_wifi_iface=wlan1
