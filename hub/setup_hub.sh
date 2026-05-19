@@ -24,9 +24,6 @@ VIRT_WIFI_IFACE=${hub_virt_wifi_iface:-"wlan1"}
 nmcli dev wifi hotspot ifname "$WIFI_IFACE" ssid "$SSID" password "$WIFI_PASS" con-name Hotspot
 nmcli con modify Hotspot connection.autoconnect yes
 nmcli con modify Hotspot 802-11-wireless-security.wps-method 1
-nmcli con modify Hotspot 802-11-wireless-security.pmf 1
-nmcli con modify Hotspot 802-11-wireless.band bg
-nmcli con modify Hotspot 802-11-wireless.channel 6
 
 log_info "Setting up WireGuard client..."
 if [ -f /etc/vpn_hub/hub/client_wg0.conf ]; then
