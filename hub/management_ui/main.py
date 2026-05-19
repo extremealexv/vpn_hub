@@ -6,7 +6,13 @@ from pydantic import BaseModel
 import subprocess
 import os
 
+WIFI_IFACE = os.environ.get("hub_wifi_iface", "wlan0")
 VIRT_IFACE = os.environ.get("hub_virt_wifi_iface", "wlan1")
+
+def ensure_virt_iface():
+    if not os.path.exists(f"/sys/class/net/{VIRT_IFACE}"):
+        subprocess.run(["iw", "dev", WIFI_IFACE, "interface", "add", VIRT_IFACE, "type", "managed"])
+        subprocess.run(["ip", "link", "set", VIRT_IFACE, "up"])
 
 app = FastAPI(title="VPN Hub Management")
 
@@ -73,6 +79,7 @@ async def get_status():
 @app.get("/api/wifi/scan")
 async def scan_wifi():
     try:
+        ensure_virt_iface()
         # Rescan
         subprocess.run(["nmcli", "dev", "wifi", "rescan", "ifname", VIRT_IFACE], capture_output=True)
         output = subprocess.check_output(["nmcli", "-t", "-f", "SSID,SIGNAL,SECURITY", "dev", "wifi", "list", "ifname", VIRT_IFACE]).decode()
@@ -95,6 +102,7 @@ async def scan_wifi():
 
 @app.post("/api/wifi/connect")
 async def connect_wifi(req: WifiConnectRequest):
+    ensure_virt_iface()
     cmd = ["nmcli", "dev", "wifi", "connect", req.ssid, "ifname", VIRT_IFACE]
     if req.password:
         cmd.extend(["password", req.password])
