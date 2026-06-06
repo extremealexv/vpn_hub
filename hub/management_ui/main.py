@@ -83,8 +83,8 @@ async def get_status():
 async def scan_wifi():
     try:
         ensure_virt_iface()
-        # Rescan
-        subprocess.run(["nmcli", "dev", "wifi", "rescan", "ifname", VIRT_IFACE], capture_output=True)
+        # Rescan in background to avoid dropping the HTTP request when the radio switches channels
+        subprocess.Popen(["nmcli", "dev", "wifi", "rescan", "ifname", VIRT_IFACE], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         output = subprocess.check_output(["nmcli", "-t", "-f", "SSID,SIGNAL,SECURITY", "dev", "wifi", "list", "ifname", VIRT_IFACE]).decode()
         networks = []
         seen_ssids = set()
