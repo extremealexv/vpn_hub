@@ -10,9 +10,12 @@ WIFI_IFACE = os.environ.get("hub_wifi_iface", "wlan0")
 VIRT_IFACE = os.environ.get("hub_virt_wifi_iface", "wlan1")
 
 def ensure_virt_iface():
+    import time
     if not os.path.exists(f"/sys/class/net/{VIRT_IFACE}"):
         subprocess.run(["iw", "dev", WIFI_IFACE, "interface", "add", VIRT_IFACE, "type", "managed"])
         subprocess.run(["ip", "link", "set", VIRT_IFACE, "up"])
+        subprocess.run(["nmcli", "dev", "set", VIRT_IFACE, "managed", "yes"])
+        time.sleep(3)
 
 app = FastAPI(title="VPN Hub Management")
 
