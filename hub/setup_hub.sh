@@ -56,6 +56,9 @@ After=network.target NetworkManager.service
 User=root
 WorkingDirectory=/opt/vpn_hub_ui
 EnvironmentFile=/etc/vpn_hub/.sbc.conf
+ExecStartPre=-/usr/sbin/iw dev $WIFI_IFACE interface add $VIRT_WIFI_IFACE type managed
+ExecStartPre=-/usr/bin/ip link set $VIRT_WIFI_IFACE up
+ExecStartPre=-/usr/bin/nmcli dev set $VIRT_WIFI_IFACE managed yes
 ExecStart=/opt/vpn_hub_ui/venv/bin/uvicorn main:app --host 0.0.0.0 --port 80
 Restart=always
 

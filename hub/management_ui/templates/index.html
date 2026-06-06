@@ -167,7 +167,7 @@
                     list.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 1rem;">No networks found</div>';
                 }
             } catch (e) {
-                list.innerHTML = '<div style="text-align: center; color: var(--error); padding: 1rem;">Scan failed</div>';
+                list.innerHTML = `<div style="text-align: center; color: var(--error); padding: 1rem;">Scan failed: ${e.name} - ${e.message}</div>`;
             } finally {
                 btn.innerHTML = '<i data-lucide="refresh-cw" id="icon-scan"></i> Scan Networks';
                 lucide.createIcons();
