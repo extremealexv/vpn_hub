@@ -5,6 +5,10 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 import subprocess
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 WIFI_IFACE = os.environ.get("hub_wifi_iface", "wlan0")
 VIRT_IFACE = os.environ.get("hub_virt_wifi_iface", "wlan1")
@@ -12,10 +16,13 @@ VIRT_IFACE = os.environ.get("hub_virt_wifi_iface", "wlan1")
 def ensure_virt_iface():
     import time
     if not os.path.exists(f"/sys/class/net/{VIRT_IFACE}"):
-        subprocess.run(["iw", "dev", WIFI_IFACE, "interface", "add", VIRT_IFACE, "type", "managed"])
-        subprocess.run(["ip", "link", "set", VIRT_IFACE, "up"])
-        subprocess.run(["nmcli", "dev", "set", VIRT_IFACE, "managed", "yes"])
-        time.sleep(3)
+        try:
+            subprocess.run(["iw", "dev", WIFI_IFACE, "interface", "add", VIRT_IFACE, "type", "managed"], check=True)
+            subprocess.run(["ip", "link", "set", VIRT_IFACE, "up"], check=True)
+            subprocess.run(["nmcli", "dev", "set", VIRT_IFACE, "managed", "yes"])
+            time.sleep(3)
+        except Exception as e:
+            logger.error(f"Error creating virtual interface: {e}")
 
 app = FastAPI(title="VPN Hub Management")
 
@@ -79,12 +86,19 @@ async def get_status():
         "internet": internet_status
     }
 
+def trigger_rescan():
+    try:
+        subprocess.run(["nmcli", "dev", "wifi", "rescan", "ifname", VIRT_IFACE], capture_output=True)
+    except Exception as e:
+        logger.error(f"Rescan failed: {e}")
+
 @app.get("/api/wifi/scan")
-async def scan_wifi():
+async def scan_wifi(background_tasks: BackgroundTasks):
     try:
         ensure_virt_iface()
-        # Rescan in background to avoid dropping the HTTP request when the radio switches channels
-        subprocess.Popen(["nmcli", "dev", "wifi", "rescan", "ifname", VIRT_IFACE], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # Schedule rescan to happen AFTER the HTTP response is sent, so the AP drop doesn't break the UI
+        background_tasks.add_task(trigger_rescan)
+        
         output = subprocess.check_output(["nmcli", "-t", "-f", "SSID,SIGNAL,SECURITY", "dev", "wifi", "list", "ifname", VIRT_IFACE]).decode()
         networks = []
         seen_ssids = set()
@@ -101,6 +115,7 @@ async def scan_wifi():
         networks = sorted(networks, key=lambda x: int(x['signal']), reverse=True)
         return {"status": "success", "networks": networks}
     except Exception as e:
+        logger.error(f"Scan API Exception: {str(e)}")
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
 
 @app.post("/api/wifi/connect")
