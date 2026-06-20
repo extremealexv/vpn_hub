@@ -19,7 +19,7 @@ SSID=${hub_ssid:-"VPN_Hub_AP"}
 WIFI_PASS=${hub_password:-"vpnhub123"}
 
 WIFI_IFACE=${hub_wifi_iface:-"wlan0"}
-VIRT_WIFI_IFACE=${hub_virt_wifi_iface:-"wlan1"}
+UPSTREAM_WIFI_IFACE=${hub_upstream_wifi_iface:-"wlan1"}
 
 nmcli dev wifi hotspot ifname "$WIFI_IFACE" ssid "$SSID" password "$WIFI_PASS" con-name Hotspot
 nmcli con modify Hotspot connection.autoconnect yes
@@ -56,9 +56,6 @@ After=network.target NetworkManager.service
 User=root
 WorkingDirectory=/opt/vpn_hub_ui
 EnvironmentFile=/etc/vpn_hub/.sbc.conf
-ExecStartPre=-/usr/sbin/iw dev $WIFI_IFACE interface add $VIRT_WIFI_IFACE type managed
-ExecStartPre=-/usr/bin/ip link set $VIRT_WIFI_IFACE up
-ExecStartPre=-/usr/bin/nmcli dev set $VIRT_WIFI_IFACE managed yes
 ExecStart=/opt/vpn_hub_ui/venv/bin/uvicorn main:app --host 0.0.0.0 --port 80
 Restart=always
 

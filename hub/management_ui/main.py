@@ -11,19 +11,16 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 WIFI_IFACE = os.environ.get("hub_wifi_iface", "wlan0")
-VIRT_IFACE = os.environ.get("hub_virt_wifi_iface", "wlan1")
-
-def ensure_virt_iface():
-    import time
-    if not os.path.exists(f"/sys/class/net/{VIRT_IFACE}"):
-        try:
-            subprocess.run(["iw", "dev", WIFI_IFACE, "interface", "add", VIRT_IFACE, "type", "managed"], check=True)
-            subprocess.run(["ip", "link", "set", VIRT_IFACE, "up"], check=True)
-            subprocess.run(["nmcli", "dev", "set", VIRT_IFACE, "managed", "yes"])
-            time.sleep(3)
-        except Exception as e:
-            logger.error(f"Error creating virtual interface: {e}")
-
+def get_upstream_iface():
+    try:
+        output = subprocess.check_output(["iw", "dev"]).decode()
+        for line in output.split("\n"):
+            line = line.strip()
+            if line.startswith("Interface ") and WIFI_IFACE not in line:
+                return line.split(" ")[1]
+    except:
+        pass
+    return os.environ.get("hub_upstream_wifi_iface", "wlan1")
 app = FastAPI(title="VPN Hub Management")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -88,18 +85,18 @@ async def get_status():
 
 def trigger_rescan():
     try:
-        subprocess.run(["nmcli", "dev", "wifi", "rescan", "ifname", VIRT_IFACE], capture_output=True)
+        subprocess.run(["nmcli", "dev", "wifi", "rescan", "ifname", get_upstream_iface()], capture_output=True)
     except Exception as e:
         logger.error(f"Rescan failed: {e}")
 
 @app.get("/api/wifi/scan")
 async def scan_wifi(background_tasks: BackgroundTasks):
     try:
-        ensure_virt_iface()
         # Schedule rescan to happen AFTER the HTTP response is sent, so the AP drop doesn't break the UI
         background_tasks.add_task(trigger_rescan)
         
-        output = subprocess.check_output(["nmcli", "-t", "-f", "SSID,SIGNAL,SECURITY", "dev", "wifi", "list", "ifname", VIRT_IFACE]).decode()
+        upstream_iface = get_upstream_iface()
+        output = subprocess.check_output(["nmcli", "-t", "-f", "SSID,SIGNAL,SECURITY", "dev", "wifi", "list", "ifname", upstream_iface]).decode()
         networks = []
         seen_ssids = set()
         for line in output.split('\n'):
@@ -120,13 +117,15 @@ async def scan_wifi(background_tasks: BackgroundTasks):
 
 @app.post("/api/wifi/connect")
 async def connect_wifi(req: WifiConnectRequest):
-    ensure_virt_iface()
-    cmd = ["nmcli", "dev", "wifi", "connect", req.ssid, "ifname", VIRT_IFACE]
+    upstream_iface = get_upstream_iface()
+    cmd = ["nmcli", "dev", "wifi", "connect", req.ssid, "ifname", upstream_iface]
     if req.password:
         cmd.extend(["password", req.password])
     
     result = run_cmd(cmd)
     if "Error" in result or "failed" in result.lower():
+        if "Secrets were required" in result or "Connection activation failed" in result:
+             return JSONResponse(status_code=400, content={"status": "error", "message": f"Connection failed. If '{req.ssid}' requires a password, please provide one. Details: {result}"})
         return JSONResponse(status_code=400, content={"status": "error", "message": result})
     return {"status": "success", "message": "Connected to Wi-Fi"}
 
