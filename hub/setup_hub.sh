@@ -23,6 +23,19 @@ UPSTREAM_WIFI_IFACE=${hub_upstream_wifi_iface:-"wlan1"}
 
 nmcli dev wifi hotspot ifname "$WIFI_IFACE" ssid "$SSID" password "$WIFI_PASS" con-name Hotspot
 nmcli con modify Hotspot connection.autoconnect yes
+
+log_info "Disabling MAC Address Randomization..."
+mkdir -p /etc/NetworkManager/conf.d
+cat <<EOF > /etc/NetworkManager/conf.d/mac-randomization.conf
+[device]
+wifi.scan-rand-mac-address=no
+
+[connection]
+wifi.cloned-mac-address=permanent
+ethernet.cloned-mac-address=permanent
+EOF
+systemctl restart NetworkManager
+
 nmcli con modify Hotspot 802-11-wireless-security.wps-method 1
 nmcli con modify Hotspot 802-11-wireless-security.pmf 1
 nmcli con modify Hotspot 802-11-wireless.band bg

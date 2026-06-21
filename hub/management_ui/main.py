@@ -125,7 +125,7 @@ async def connect_wifi(req: WifiConnectRequest):
     result = run_cmd(cmd)
     if "Error" in result or "failed" in result.lower():
         if "Secrets were required" in result or "Connection activation failed" in result:
-             return JSONResponse(status_code=400, content={"status": "error", "message": f"Connection failed. If '{req.ssid}' requires a password, please provide one. Details: {result}"})
+             return JSONResponse(status_code=400, content={"status": "error", "message": f"Connection failed. The network might be out of range, rejecting the device, or requires a password. Details: {result}"})
         return JSONResponse(status_code=400, content={"status": "error", "message": result})
     return {"status": "success", "message": "Connected to Wi-Fi"}
 
