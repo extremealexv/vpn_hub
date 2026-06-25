@@ -39,6 +39,60 @@ def run_cmd(cmd: list) -> str:
     except Exception as e:
         return f"Error: {str(e)}"
 
+def get_interfaces_ips():
+    ips = {}
+    try:
+        output = subprocess.check_output(["ip", "-4", "-o", "addr", "show"]).decode()
+        for line in output.split("\n"):
+            if not line.strip(): continue
+            parts = line.split()
+            if len(parts) >= 4:
+                iface = parts[1]
+                ip_cidr = parts[3]
+                ip = ip_cidr.split('/')[0]
+                if iface != "lo":
+                    ips[iface] = ip
+    except:
+        pass
+    return ips
+
+def get_connected_clients():
+    clients = []
+    try:
+        output = subprocess.check_output(["ip", "neighbor", "show", "dev", WIFI_IFACE]).decode()
+        for line in output.split("\n"):
+            parts = line.split()
+            if len(parts) >= 3 and "FAILED" not in parts:
+                ip = parts[0]
+                try:
+                    mac_idx = parts.index("lladdr") + 1
+                    mac = parts[mac_idx]
+                    clients.append({"ip": ip, "mac": mac})
+                except ValueError:
+                    pass
+    except:
+        pass
+    
+    hostnames = {}
+    lease_dirs = ["/var/lib/NetworkManager", "/var/lib/misc"]
+    for d in lease_dirs:
+        if not os.path.exists(d): continue
+        for f in os.listdir(d):
+            if f.endswith(".leases"):
+                try:
+                    with open(os.path.join(d, f), 'r') as file:
+                        for line in file:
+                            parts = line.split()
+                            if len(parts) >= 4:
+                                hostnames[parts[1].lower()] = parts[3]
+                except:
+                    pass
+                    
+    for c in clients:
+        c['hostname'] = hostnames.get(c['mac'].lower(), "Unknown Device")
+        
+    return clients
+
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -80,7 +134,9 @@ async def get_status():
         "vpn": vpn_status,
         "upstream_wifi": upstream_status,
         "upstream_ssid": upstream_ssid,
-        "internet": internet_status
+        "internet": internet_status,
+        "interfaces": get_interfaces_ips(),
+        "clients": get_connected_clients()
     }
 
 def trigger_rescan():

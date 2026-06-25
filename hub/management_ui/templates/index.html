@@ -42,6 +42,19 @@
             </button>
         </div>
 
+        <!-- Network Info -->
+        <div class="card" id="network-card">
+            <h2><i data-lucide="network"></i> Network Info</h2>
+            <div id="network-interfaces">
+                <span class="status-value" style="color: var(--text-muted);">Loading interfaces...</span>
+            </div>
+            
+            <h3 style="margin-top: 1.5rem; font-size: 1.1rem; color: var(--text-muted);">Connected Clients</h3>
+            <div id="network-clients" style="margin-top: 0.5rem; color: var(--text-muted);">
+                Loading clients...
+            </div>
+        </div>
+
         <!-- Upstream Wi-Fi -->
         <div class="card" id="wifi-card">
             <h2><i data-lucide="wifi"></i> Upstream Wi-Fi</h2>
@@ -112,6 +125,41 @@
 
                 updateDot('wifi', data.upstream_wifi === 'Connected');
                 document.getElementById('txt-wifi').textContent = data.upstream_wifi === 'Connected' ? data.upstream_ssid : 'Disconnected';
+
+                // Populate Interfaces
+                const ifacesDiv = document.getElementById('network-interfaces');
+                ifacesDiv.innerHTML = '';
+                if (data.interfaces && Object.keys(data.interfaces).length > 0) {
+                    for (const [iface, ip] of Object.entries(data.interfaces)) {
+                        ifacesDiv.innerHTML += `
+                            <div class="status-row">
+                                <span class="status-label">${iface}</span>
+                                <span class="status-value">${ip}</span>
+                            </div>
+                        `;
+                    }
+                } else {
+                    ifacesDiv.innerHTML = '<span class="status-value" style="color: var(--text-muted);">No active interfaces</span>';
+                }
+
+                // Populate Clients
+                const clientsDiv = document.getElementById('network-clients');
+                clientsDiv.innerHTML = '';
+                if (data.clients && data.clients.length > 0) {
+                    data.clients.forEach(client => {
+                        clientsDiv.innerHTML += `
+                            <div class="status-row" style="margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                                <div style="display: flex; flex-direction: column;">
+                                    <span class="status-label" style="font-weight: 600; color: var(--accent-cyan);">${client.hostname}</span>
+                                    <span style="font-size: 0.8rem; color: var(--text-muted);">${client.mac}</span>
+                                </div>
+                                <span class="status-value">${client.ip}</span>
+                            </div>
+                        `;
+                    });
+                } else {
+                    clientsDiv.innerHTML = 'No clients connected.';
+                }
             } catch (e) {
                 console.error("Failed to fetch status");
             }
