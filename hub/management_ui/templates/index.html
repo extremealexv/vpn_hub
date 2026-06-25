@@ -67,9 +67,14 @@
             </div>
             
             <h3 style="margin-top: 1.5rem; font-size: 1.1rem; color: var(--text-muted);">Available Networks</h3>
-            <button id="btn-scan" onclick="scanWifi()" style="margin-top: 0.5rem; background: transparent; border: 1px solid var(--accent-cyan); color: var(--accent-cyan); padding: 0.5rem;">
-                <i data-lucide="refresh-cw" id="icon-scan"></i> Scan Networks
-            </button>
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                <button id="btn-scan" onclick="scanWifi()" style="background: transparent; border: 1px solid var(--accent-cyan); color: var(--accent-cyan); padding: 0.5rem; flex: 1;">
+                    <i data-lucide="refresh-cw" id="icon-scan"></i> Scan Networks
+                </button>
+                <button class="btn-danger" onclick="clearWifiNetworks()" style="padding: 0.5rem; white-space: nowrap;">
+                    <i data-lucide="trash-2"></i> Clear Saved
+                </button>
+            </div>
             
             <div class="wifi-list" id="wifi-list">
                 <!-- Populated by JS -->
@@ -266,6 +271,19 @@
             } finally {
                 btn.innerHTML = 'Connect';
                 btn.disabled = false;
+            }
+        }
+
+        async function clearWifiNetworks() {
+            if (confirm("Are you sure you want to forget all saved upstream Wi-Fi networks?")) {
+                try {
+                    const res = await fetch('/api/wifi/clear', { method: 'POST' });
+                    const data = await res.json();
+                    alert(data.message || "Networks cleared");
+                    fetchStatus();
+                } catch(e) {
+                    alert("Failed to clear networks");
+                }
             }
         }
 

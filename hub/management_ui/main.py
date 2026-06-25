@@ -185,6 +185,23 @@ async def connect_wifi(req: WifiConnectRequest):
         return JSONResponse(status_code=400, content={"status": "error", "message": result})
     return {"status": "success", "message": "Connected to Wi-Fi"}
 
+@app.post("/api/wifi/clear")
+async def clear_wifi_networks():
+    try:
+        output = subprocess.check_output(["nmcli", "-t", "-f", "NAME,TYPE", "connection", "show"]).decode()
+        deleted = 0
+        for line in output.split('\n'):
+            parts = line.split(':')
+            if len(parts) >= 2:
+                name = parts[0]
+                ctype = parts[1]
+                if ctype == "802-11-wireless" and name != "Hotspot":
+                    subprocess.run(["nmcli", "connection", "delete", name])
+                    deleted += 1
+        return {"status": "success", "message": f"Cleared {deleted} saved network(s)"}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+
 @app.post("/api/vpn/toggle")
 async def toggle_vpn():
     status = await get_status()
