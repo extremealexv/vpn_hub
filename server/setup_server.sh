@@ -28,15 +28,23 @@ if [ ! -f server_private.key ]; then
     chmod 600 *.key
 fi
 
+if [ ! -f windows_private.key ]; then
+    wg genkey | tee windows_private.key | wg pubkey > windows_public.key
+    chmod 600 windows_*.key
+fi
+
 SERVER_PRIV=$(cat server_private.key)
 SERVER_PUB=$(cat server_public.key)
 CLIENT_PRIV=$(cat client_private.key)
 CLIENT_PUB=$(cat client_public.key)
+WINDOWS_PRIV=$(cat windows_private.key)
+WINDOWS_PUB=$(cat windows_public.key)
 
-# VPN network config: Server 10.8.0.1, Hub 10.8.0.2
+# VPN network config: Server 10.8.0.1, Hub 10.8.0.2, Windows 10.8.0.3
 VPN_SUBNET="10.8.0.0/24"
 SERVER_IP="10.8.0.1"
 CLIENT_IP="10.8.0.2"
+WINDOWS_IP="10.8.0.3"
 
 # Detect default interface for MASQUERADE
 DEFAULT_IFACE=$(ip route ls | grep default | grep -Po '(?<=dev )(\S+)' | head -1)
@@ -59,6 +67,10 @@ PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING 
 [Peer]
 PublicKey = $CLIENT_PUB
 AllowedIPs = $CLIENT_IP/32
+
+[Peer]
+PublicKey = $WINDOWS_PUB
+AllowedIPs = $WINDOWS_IP/32
 EOF
 
 chmod 600 /etc/wireguard/wg0.conf
@@ -80,6 +92,24 @@ EOF
 chmod 600 /etc/vpn_hub/server/client_wg0.conf
 cp /etc/vpn_hub/server/client_wg0.conf /home/$user/client_wg0.conf
 chown $user:$user /home/$user/client_wg0.conf
+
+log_info "Creating Windows wg0.conf..."
+cat <<EOF > /etc/vpn_hub/server/windows_wg0.conf
+[Interface]
+Address = $WINDOWS_IP/24
+PrivateKey = $WINDOWS_PRIV
+DNS = 1.1.1.1, 1.0.0.1
+
+[Peer]
+PublicKey = $SERVER_PUB
+Endpoint = $nat_name:$vpn_port
+AllowedIPs = 0.0.0.0/0, ::/0
+PersistentKeepalive = 25
+EOF
+
+chmod 600 /etc/vpn_hub/server/windows_wg0.conf
+cp /etc/vpn_hub/server/windows_wg0.conf /home/$user/windows_wg0.conf
+chown $user:$user /home/$user/windows_wg0.conf
 
 log_info "Starting and enabling wg-quick@wg0..."
 systemctl enable wg-quick@wg0
