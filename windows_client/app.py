@@ -17,7 +17,9 @@ class VPNApp(ctk.CTk):
         self.geometry("400x320")
         self.resizable(False, False)
 
-        self.wireguard_path = r"C:\Program Files\WireGuard\wireguard.exe"
+        self.wireguard_path = r"C:\Program Files\AmneziaWG\amneziawg.exe"
+        if not os.path.exists(self.wireguard_path):
+            self.wireguard_path = r"C:\Program Files (x86)\AmneziaWG\amneziawg.exe"
         
         # When compiled with PyInstaller, the conf file should be in the same folder as the exe
         if getattr(sys, 'frozen', False):
@@ -25,8 +27,8 @@ class VPNApp(ctk.CTk):
         else:
             base_path = os.path.dirname(os.path.abspath(__file__))
             
-        self.conf_path = os.path.join(base_path, "windows_wg0.conf")
-        self.tunnel_name = "windows_wg0"
+        self.conf_path = os.path.join(base_path, "windows_awg0.conf")
+        self.tunnel_name = "windows_awg0"
         self.is_connected = False
 
         self.setup_ui()
@@ -50,8 +52,8 @@ class VPNApp(ctk.CTk):
 
     def check_is_connected(self):
         try:
-            # Check if the service is running (WireGuard creates a service named WireGuardTunnel$Name)
-            output = subprocess.check_output(["sc", "query", f"WireGuardTunnel${self.tunnel_name}"], stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW).decode()
+            # Check if the service is running (AmneziaWG creates a service named AmneziaWGTunnel$Name)
+            output = subprocess.check_output(["sc", "query", f"AmneziaWGTunnel${self.tunnel_name}"], stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW).decode()
             if "RUNNING" in output:
                 return True
         except subprocess.CalledProcessError:
@@ -73,11 +75,11 @@ class VPNApp(ctk.CTk):
 
     def toggle_vpn(self):
         if not os.path.exists(self.wireguard_path):
-            self.log_label.configure(text="Error: WireGuard for Windows is not installed.")
+            self.log_label.configure(text="Error: AmneziaWG for Windows is not installed.")
             return
             
         if not os.path.exists(self.conf_path):
-            self.log_label.configure(text="Error: windows_wg0.conf missing in app folder.")
+            self.log_label.configure(text="Error: windows_awg0.conf missing in app folder.")
             return
 
         self.toggle_btn.configure(state="disabled")

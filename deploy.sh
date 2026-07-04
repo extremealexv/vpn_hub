@@ -36,6 +36,10 @@ deploy_server() {
     echo "Fetching client_wg0.conf from server..."
     mkdir -p hub
     python3 run_ssh.py "$password" scp -o StrictHostKeyChecking=no "$user@$vpn_server_ip":~/client_wg0.conf hub/client_wg0.conf
+    
+    echo "Fetching windows_wg0.conf from server..."
+    mkdir -p windows_client
+    python3 run_ssh.py "$password" scp -o StrictHostKeyChecking=no "$user@$vpn_server_ip":~/windows_wg0.conf windows_client/windows_wg0.conf || true
 }
 
 deploy_hub() {
